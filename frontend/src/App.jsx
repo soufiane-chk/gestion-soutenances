@@ -10,6 +10,9 @@ import Rapports from './pages/Rapports';
 import Soutenances from './pages/Soutenances';
 import Jurys from './pages/Jurys';
 import Users from './pages/Admin/Users';
+import Documents from './pages/Documents';
+import Encadrement from './pages/Encadrement';
+import Rapporteur from './pages/Rapporteur';
 
 function App() {
   return (
@@ -84,6 +87,36 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Jurys />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/documents"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Documents />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/encadrement"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Encadrement />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/rapporteur"
+            element={
+              <ProtectedRoute requiredRole="professeur">
+                <Layout>
+                  <Rapporteur />
                 </Layout>
               </ProtectedRoute>
             }

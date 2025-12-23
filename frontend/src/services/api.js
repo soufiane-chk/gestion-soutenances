@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-const BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001/api';
+const BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8001';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -119,28 +119,35 @@ export const etudiantsAPI = {
 
 // Professeurs
 export const professeursAPI = {
+  // CRUD
   getAll: () => api.get('/professeurs'),
   getById: (id) => api.get(`/professeurs/${id}`),
   create: (data) => api.post('/professeurs', data),
   update: (id, data) => api.put(`/professeurs/${id}`, data),
   delete: (id) => api.delete(`/professeurs/${id}`),
+  // Spécifiques métier
+  mesEtudiants: () => api.get('/professeurs/mes-etudiants'),
+  affecterRapporteur: (etudiantId, data) => api.post(`/etudiants/${etudiantId}/affecter-rapporteur`, data),
+  rapportsAEvaluer: () => api.get('/professeurs/rapports-a-evaluer'),
 };
 
-// Rapports
+// Rapports (inclut version finale)
 export const rapportsAPI = {
   getAll: () => api.get('/rapports'),
   getById: (id) => api.get(`/rapports/${id}`),
-  // Utilise FormData avec multipart pour permettre l'upload de fichier
   create: (formData) =>
     api.post('/rapports', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
-  // On passe aussi par multipart pour l'update (avec _method=PUT pour Laravel)
   update: (id, formData) =>
     api.post(`/rapports/${id}?_method=PUT`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
   delete: (id) => api.delete(`/rapports/${id}`),
+  deposerVersionFinale: (id, formData) =>
+    api.post(`/rapports/${id}/version-finale`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };
 
 // Soutenances
@@ -159,6 +166,32 @@ export const jurysAPI = {
   create: (data) => api.post('/jurys', data),
   update: (id, data) => api.put(`/jurys/${id}`, data),
   delete: (id) => api.delete(`/jurys/${id}`),
+};
+
+// Documents
+export const documentsAPI = {
+  deposer: (etudiantId, formData) =>
+    api.post(`/etudiants/${etudiantId}/documents`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+  valider: (etudiantId, data) => api.post(`/etudiants/${etudiantId}/documents/valider`, data),
+  enAttente: () => api.get('/documents/en-attente'),
+  download: (etudiantId, type) => api.get(`/etudiants/${etudiantId}/documents/${type}/download`, { responseType: 'blob' }),
+};
+
+// Encadrement
+export const encadrementAPI = {
+  affecterEncadrant: (etudiantId, data) => api.post(`/etudiants/${etudiantId}/affecter-encadrant`, data),
+  mesEtudiants: () => api.get('/encadrement/mes-etudiants'),
+  creerSeance: (data) => api.post('/encadrement/seances', data),
+  mesSeances: () => api.get('/encadrement/seances'),
+  seancesEtudiant: (etudiantId) => api.get(`/etudiants/${etudiantId}/seances`),
+};
+
+// Rapporteur
+export const rapporteurAPI = {
+  ajouterRemarques: (rapportId, data) => api.post(`/rapports/${rapportId}/remarques`, data),
+  validerRapport: (rapportId) => api.post(`/rapports/${rapportId}/valider`),
 };
 
 export default api;

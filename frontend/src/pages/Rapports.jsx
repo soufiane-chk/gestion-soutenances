@@ -19,11 +19,15 @@ const Rapports = () => {
   const [formData, setFormData] = useState({
     etudiant_id: '',
     fichier: null,
+    feedback_entreprise: null,
     remarque: '',
-    // statut stocké en base: 'depose' (en attente), 'corrige', 'valide'
+    // statut stocké en base: 'depose' (en attente), 'corrige', 'valide', 'version_finale'
     statut: 'depose',
     date_depot: new Date().toISOString().split('T')[0],
   });
+  const [showVersionFinaleModal, setShowVersionFinaleModal] = useState(false);
+  const [selectedRapportId, setSelectedRapportId] = useState(null);
+  const [versionFinaleFile, setVersionFinaleFile] = useState(null);
   const [validationData, setValidationData] = useState({
     date_soutenance: '',
     lieu_soutenance: '',
@@ -89,6 +93,9 @@ const Rapports = () => {
       if (formData.fichier) {
         data.append('fichier', formData.fichier);
       }
+      if (formData.feedback_entreprise) {
+        data.append('feedback_entreprise', formData.feedback_entreprise);
+      }
 
       if (editingId) {
         await rapportsAPI.update(editingId, data);
@@ -99,6 +106,26 @@ const Rapports = () => {
       resetForm();
     } catch (error) {
       alert('Erreur lors de l\'enregistrement: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleDeposerVersionFinale = async (e) => {
+    e.preventDefault();
+    if (!versionFinaleFile) {
+      alert('Veuillez sélectionner un fichier');
+      return;
+    }
+    try {
+      const data = new FormData();
+      data.append('version_finale', versionFinaleFile);
+      await rapportsAPI.deposerVersionFinale(selectedRapportId, data);
+      alert('Version finale déposée avec succès');
+      setShowVersionFinaleModal(false);
+      setVersionFinaleFile(null);
+      setSelectedRapportId(null);
+      fetchRapports();
+    } catch (error) {
+      alert('Erreur: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -476,6 +503,18 @@ const Rapports = () => {
                       {/* Actions pour l'étudiant sur SES propres rapports */}
                       {user?.role === 'etudiant' && user.etudiant?.id === rapport.etudiant_id && (
                         <>
+                          {rapport.statut === 'valide' && (
+                            <button
+                              onClick={() => {
+                                setSelectedRapportId(rapport.id);
+                                setShowVersionFinaleModal(true);
+                              }}
+                              className="text-green-600 hover:text-green-900"
+                              title="Déposer version finale"
+                            >
+                              <FileText className="w-5 h-5" />
+                            </button>
+                          )}
                           <button
                             onClick={() => handleEdit(rapport)}
                             className="text-blue-600 hover:text-blue-900"
@@ -517,15 +556,27 @@ const Rapports = () => {
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               {!editingId && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fichier</label>
-                  <input
-                    type="file"
-                    onChange={(e) => setFormData({ ...formData, fichier: e.target.files[0] })}
-                    required={!editingId}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Fichier rapport</label>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => setFormData({ ...formData, fichier: e.target.files[0] })}
+                      required={!editingId}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Feedback entreprise (optionnel)</label>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => setFormData({ ...formData, feedback_entreprise: e.target.files[0] })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </>
               )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Remarque</label>
@@ -692,6 +743,46 @@ const Rapports = () => {
                       salle: '',
                       status: 'planifiee',
                     });
+                  }}
+                  className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition"
+                >
+                  Annuler
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal pour déposer version finale */}
+      {showVersionFinaleModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-2xl font-bold mb-4">Déposer la version finale</h2>
+            <form onSubmit={handleDeposerVersionFinale} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Version finale</label>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => setVersionFinaleFile(e.target.files[0])}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="flex space-x-4">
+                <button
+                  type="submit"
+                  className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition"
+                >
+                  Déposer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowVersionFinaleModal(false);
+                    setVersionFinaleFile(null);
+                    setSelectedRapportId(null);
                   }}
                   className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition"
                 >

@@ -92,30 +92,48 @@ const Dashboard = () => {
 
   if (isAdmin) {
     const statCards = [
-      { label: 'Étudiants', value: stats.etudiants, icon: Users, color: 'bg-blue-500' },
-      { label: 'Professeurs', value: stats.professeurs, icon: GraduationCap, color: 'bg-green-500' },
-      { label: 'Rapports', value: stats.rapports, icon: FileText, color: 'bg-yellow-500' },
-      { label: 'Soutenances', value: stats.soutenances, icon: Calendar, color: 'bg-purple-500' },
+      { label: 'Étudiants', value: stats.etudiants, icon: Users, gradient: 'from-blue-500 to-cyan-500', bgGradient: 'from-blue-50 to-cyan-50' },
+      { label: 'Professeurs', value: stats.professeurs, icon: GraduationCap, gradient: 'from-green-500 to-emerald-500', bgGradient: 'from-green-50 to-emerald-50' },
+      { label: 'Rapports', value: stats.rapports, icon: FileText, gradient: 'from-yellow-500 to-orange-500', bgGradient: 'from-yellow-50 to-orange-50' },
+      { label: 'Soutenances', value: stats.soutenances, icon: Calendar, gradient: 'from-purple-500 to-pink-500', bgGradient: 'from-purple-50 to-pink-50' },
     ];
 
     return (
-      <div>
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">Dashboard Administrateur</h1>
+      <div className="space-y-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-bold gradient-text mb-2">
+              Dashboard Administrateur
+            </h1>
+            <p className="text-gray-600">Vue d'ensemble du système</p>
+          </div>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {statCards.map((stat) => {
+          {statCards.map((stat, index) => {
             const Icon = stat.icon;
             return (
               <div
                 key={stat.label}
-                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition"
+                className={`relative overflow-hidden bg-gradient-to-br ${stat.bgGradient} rounded-2xl p-6 card-hover border border-white/50 shadow-xl`}
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
-                    <p className="text-3xl font-bold text-gray-800 mt-2">{stat.value}</p>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br opacity-10 blur-2xl transform translate-x-8 -translate-y-8">
+                  <Icon className="w-full h-full" />
+                </div>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`p-3 bg-gradient-to-br ${stat.gradient} rounded-xl shadow-lg`}>
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
                   </div>
-                  <div className={`${stat.color} p-3 rounded-full`}>
-                    <Icon className="w-8 h-8 text-white" />
+                  <p className="text-gray-600 text-sm font-medium mb-1">{stat.label}</p>
+                  <p className="text-4xl font-bold text-gray-800">{stat.value}</p>
+                  <div className="mt-4 h-1 bg-white/30 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full bg-gradient-to-r ${stat.gradient} rounded-full`}
+                      style={{ width: `${Math.min((stat.value / 100) * 100, 100)}%` }}
+                    ></div>
                   </div>
                 </div>
               </div>
@@ -128,34 +146,56 @@ const Dashboard = () => {
 
   if (isEtudiant) {
     return (
-      <div>
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">Mon Dashboard</h1>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-4xl md:text-5xl font-bold gradient-text mb-2">
+            Mon Dashboard
+          </h1>
+          <p className="text-gray-600">Bienvenue dans votre espace étudiant</p>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="glass-effect rounded-2xl p-6 card-hover border border-white/50 shadow-xl">
+            <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-800">Mes Rapports</h2>
-              <FileText className="w-8 h-8 text-blue-600" />
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl shadow-lg">
+                <FileText className="w-6 h-6 text-white" />
+              </div>
             </div>
-            <p className="text-3xl font-bold text-gray-800">{myData.rapports.length}</p>
-            <p className="text-gray-600 text-sm mt-2">Rapport(s) déposé(s)</p>
+            <p className="text-5xl font-bold gradient-text mb-2">{myData.rapports.length}</p>
+            <p className="text-gray-600 text-sm">Rapport(s) déposé(s)</p>
+            <div className="mt-4 h-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full" style={{ width: `${Math.min((myData.rapports.length / 5) * 100, 100)}%` }}></div>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
+          
+          <div className="glass-effect rounded-2xl p-6 card-hover border border-white/50 shadow-xl">
+            <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-800">Ma Soutenance</h2>
-              <Calendar className="w-8 h-8 text-purple-600" />
+              <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
+                <Calendar className="w-6 h-6 text-white" />
+              </div>
             </div>
             {myData.soutenances.length > 0 ? (
-              <div>
-                <p className="text-lg font-semibold text-gray-800">
-                  {myData.soutenances[0].theme}
-                </p>
-                <p className="text-gray-600 text-sm mt-2">
-                  Date: {myData.soutenances[0].date_soutenance}
-                </p>
-                <p className="text-gray-600 text-sm">Salle: {myData.soutenances[0].salle}</p>
+              <div className="space-y-3">
+                <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl">
+                  <p className="text-lg font-semibold text-gray-800 mb-2">
+                    {myData.soutenances[0].theme || 'Soutenance planifiée'}
+                  </p>
+                  <div className="space-y-1 text-sm text-gray-600">
+                    <p className="flex items-center space-x-2">
+                      <Calendar className="w-4 h-4" />
+                      <span>Date: {new Date(myData.soutenances[0].date_soutenance).toLocaleDateString('fr-FR')}</span>
+                    </p>
+                    <p className="flex items-center space-x-2">
+                      <span>📍</span>
+                      <span>Salle: {myData.soutenances[0].salle}</span>
+                    </p>
+                  </div>
+                </div>
               </div>
             ) : (
-              <p className="text-gray-600">Aucune soutenance planifiée</p>
+              <div className="p-4 bg-gray-50 rounded-xl text-center">
+                <p className="text-gray-600">Aucune soutenance planifiée</p>
+              </div>
             )}
           </div>
         </div>
@@ -165,22 +205,46 @@ const Dashboard = () => {
 
   if (isProfesseur) {
     return (
-      <div>
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">Dashboard Professeur</h1>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-4xl md:text-5xl font-bold gradient-text mb-2">
+            Dashboard Professeur
+          </h1>
+          <p className="text-gray-600">Gérez vos activités d'encadrement</p>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="glass-effect rounded-2xl p-6 card-hover border border-white/50 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-800">Rapports</h2>
-              <FileText className="w-8 h-8 text-blue-600" />
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl shadow-lg">
+                <FileText className="w-6 h-6 text-white" />
+              </div>
             </div>
-            <p className="text-3xl font-bold text-gray-800">{myData.rapports.length}</p>
+            <p className="text-4xl font-bold gradient-text">{myData.rapports.length}</p>
+            <p className="text-gray-600 text-sm mt-2">Rapports à évaluer</p>
           </div>
-          <div className="bg-white rounded-lg shadow-md p-6">
+          
+          <div className="glass-effect rounded-2xl p-6 card-hover border border-white/50 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-800">Soutenances</h2>
-              <Calendar className="w-8 h-8 text-purple-600" />
+              <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
+                <Calendar className="w-6 h-6 text-white" />
+              </div>
             </div>
-            <p className="text-3xl font-bold text-gray-800">{myData.soutenances.length}</p>
+            <p className="text-4xl font-bold gradient-text">{myData.soutenances.length}</p>
+            <p className="text-gray-600 text-sm mt-2">Soutenances planifiées</p>
+          </div>
+          
+          <div className="glass-effect rounded-2xl p-6 card-hover border border-white/50 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">Activités</h2>
+              <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg">
+                <UserCheck className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            <p className="text-4xl font-bold gradient-text">Actif</p>
+            <p className="text-gray-600 text-sm mt-2">En cours</p>
           </div>
         </div>
       </div>
@@ -189,11 +253,23 @@ const Dashboard = () => {
 
   if (isJury) {
     return (
-      <div>
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">Dashboard Jury</h1>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Soutenances à évaluer</h2>
-          <p className="text-3xl font-bold text-gray-800">{myData.soutenances.length}</p>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-4xl md:text-5xl font-bold gradient-text mb-2">
+            Dashboard Jury
+          </h1>
+          <p className="text-gray-600">Évaluation des soutenances</p>
+        </div>
+        
+        <div className="glass-effect rounded-2xl p-8 card-hover border border-white/50 shadow-xl">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold text-gray-800">Soutenances à évaluer</h2>
+            <div className="p-4 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl shadow-lg">
+              <UserCheck className="w-8 h-8 text-white" />
+            </div>
+          </div>
+          <p className="text-6xl font-bold gradient-text mb-4">{myData.soutenances.length}</p>
+          <p className="text-gray-600">Soutenance(s) en attente d'évaluation</p>
         </div>
       </div>
     );

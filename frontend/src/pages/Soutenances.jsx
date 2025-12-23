@@ -18,6 +18,10 @@ const Soutenances = () => {
     heure_soutenance: '',
     salle: '',
     status: '',
+    encadrant_id: '',
+    rapporteur_id: '',
+    examinateur_id: '',
+    president_id: '',
   });
 
   useEffect(() => {
@@ -101,7 +105,11 @@ const Soutenances = () => {
       date_soutenance: '',
       heure_soutenance: '',
       salle: '',
-      status: '',
+      status: 'planifiee',
+      encadrant_id: '',
+      rapporteur_id: '',
+      examinateur_id: '',
+      president_id: '',
     });
     setEditingId(null);
     setShowModal(false);
@@ -392,13 +400,120 @@ const Soutenances = () => {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Encadrant</label>
+                <select
+                  value={formData.encadrant_id}
+                  onChange={(e) => setFormData({ ...formData, encadrant_id: e.target.value })}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Sélectionner un encadrant</option>
+                  {recommendedProfs.length > 0 && (
+                    <optgroup label="Recommandés (Spécialité correspondante)">
+                      {recommendedProfs.map((prof) => (
+                        <option key={prof.id} value={prof.id}>
+                          {prof.user?.nom} - {prof.specialite}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  <optgroup label="Autres">
+                    {otherProfs.map((prof) => (
+                      <option key={prof.id} value={prof.id}>
+                        {prof.user?.nom} - {prof.specialite}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rapporteur</label>
+                <select
+                  value={formData.rapporteur_id}
+                  onChange={(e) => setFormData({ ...formData, rapporteur_id: e.target.value })}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Sélectionner un rapporteur</option>
+                  {recommendedProfs.length > 0 && (
+                    <optgroup label="Recommandés (Spécialité correspondante)">
+                      {recommendedProfs.map((prof) => (
+                        <option key={prof.id} value={prof.id}>
+                          {prof.user?.nom} - {prof.specialite}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  <optgroup label="Autres">
+                    {otherProfs.map((prof) => (
+                      <option key={prof.id} value={prof.id}>
+                        {prof.user?.nom} - {prof.specialite}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Examinateur</label>
+                <select
+                  value={formData.examinateur_id}
+                  onChange={(e) => setFormData({ ...formData, examinateur_id: e.target.value })}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Sélectionner un examinateur</option>
+                  {recommendedProfs.length > 0 && (
+                    <optgroup label="Recommandés (Spécialité correspondante)">
+                      {recommendedProfs.map((prof) => (
+                        <option key={prof.id} value={prof.id}>
+                          {prof.user?.nom} - {prof.specialite}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  <optgroup label="Autres">
+                    {otherProfs.map((prof) => (
+                      <option key={prof.id} value={prof.id}>
+                        {prof.user?.nom} - {prof.specialite}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Président</label>
+                <select
+                  value={formData.president_id}
+                  onChange={(e) => setFormData({ ...formData, president_id: e.target.value })}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Sélectionner un président</option>
+                  {recommendedProfs.length > 0 && (
+                    <optgroup label="Recommandés (Spécialité correspondante)">
+                      {recommendedProfs.map((prof) => (
+                        <option key={prof.id} value={prof.id}>
+                          {prof.user?.nom} - {prof.specialite}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  <optgroup label="Autres">
+                    {otherProfs.map((prof) => (
+                      <option key={prof.id} value={prof.id}>
+                        {prof.user?.nom} - {prof.specialite}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Sélectionner un statut</option>
                   <option value="planifiee">Planifiée</option>
                   <option value="terminee">Terminée</option>
                   <option value="annulee">Annulée</option>

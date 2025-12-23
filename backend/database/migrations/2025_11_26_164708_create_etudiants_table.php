@@ -16,6 +16,9 @@ return new class extends Migration {
             $table->string('email')->unique();
             $table->string('filiere');
             $table->string('niveau');
+            $table->string('document_stage')->nullable();
+            $table->string('convention')->nullable();
+            $table->string('assurance')->nullable();
             $table->timestamps();
         });
     }
