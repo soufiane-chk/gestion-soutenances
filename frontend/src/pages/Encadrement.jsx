@@ -252,7 +252,7 @@ const Encadrement = () => {
                       {seance.etudiant?.nom} {seance.etudiant?.prenom}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">{seance.date_seance}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{(seance.heure_debut || '').toString().slice(0,5)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{seance.heure_debut}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{seance.duree_minutes} min</td>
                     <td className="px-6 py-4">{seance.notes || '-'}</td>
                   </tr>

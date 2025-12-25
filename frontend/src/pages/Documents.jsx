@@ -21,8 +21,10 @@ const Documents = () => {
   useEffect(() => {
     if (isAdmin) {
       fetchDocumentsEnAttente();
+    } else if (isEtudiant) {
+      fetchMesDocuments();
     }
-  }, [isAdmin]);
+  }, [isAdmin, isEtudiant]);
 
   const fetchDocumentsEnAttente = async () => {
     try {
@@ -30,6 +32,17 @@ const Documents = () => {
       setDocuments(response.data || []);
     } catch (error) {
       console.error('Erreur lors du chargement des documents:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMesDocuments = async () => {
+    try {
+      const response = await documentsAPI.mesDocuments();
+      setDocuments(response.data || {});
+    } catch (error) {
+      console.error('Erreur lors du chargement de mes documents:', error);
     } finally {
       setLoading(false);
     }
@@ -55,10 +68,12 @@ const Documents = () => {
         formDataToSend.append('assurance', formData.assurance);
       }
       console.log(user);
-      await documentsAPI.deposer(user.id, formDataToSend);      
+      await documentsAPI.deposer(user.id, formDataToSend);
       alert('Documents déposés avec succès');
       setShowModal(false);
       setFormData({ document_stage: null, convention: null, assurance: null });
+      // Refresh the documents list
+      fetchMesDocuments();
     } catch (error) {
       alert('Erreur lors du dépôt: ' + (error.response?.data?.message || error.message));
     }
@@ -115,21 +130,75 @@ const Documents = () => {
 
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4">Documents requis</h2>
+          <p className="text-gray-600 mb-4">Veuillez déposer tous les documents suivants :</p>
           <ul className="space-y-2">
-            <li className="flex items-center space-x-2">
-              <FileText className="w-5 h-5 text-blue-600" />
-              <span>Document de stage</span>
+            <li className="flex items-center justify-between space-x-2">
+              <div className="flex items-center space-x-2">
+                {documents.document_stage ? (
+                  <Check className="w-5 h-5 text-green-600" />
+                ) : (
+                  <FileText className="w-5 h-5 text-blue-600" />
+                )}
+                <span className={documents.document_stage ? 'text-green-600' : 'text-gray-700'}>
+                  Document de stage {documents.document_stage && '(déposé)'}
+                </span>
+              </div>
+              {documents.document_stage && (
+                <button
+                  onClick={() => handleDownload(user.id, 'document_stage')}
+                  className="text-blue-600 hover:text-blue-900"
+                  title="Télécharger"
+                >
+                  <Download className="w-5 h-5" />
+                </button>
+              )}
             </li>
-            <li className="flex items-center space-x-2">
-              <FileText className="w-5 h-5 text-blue-600" />
-              <span>Convention de stage</span>
+            <li className="flex items-center justify-between space-x-2">
+              <div className="flex items-center space-x-2">
+                {documents.convention ? (
+                  <Check className="w-5 h-5 text-green-600" />
+                ) : (
+                  <FileText className="w-5 h-5 text-blue-600" />
+                )}
+                <span className={documents.convention ? 'text-green-600' : 'text-gray-700'}>
+                  Convention de stage {documents.convention && '(déposée)'}
+                </span>
+              </div>
+              {documents.convention && (
+                <button
+                  onClick={() => handleDownload(user.id, 'convention')}
+                  className="text-blue-600 hover:text-blue-900"
+                  title="Télécharger"
+                >
+                  <Download className="w-5 h-5" />
+                </button>
+              )}
             </li>
-            <li className="flex items-center space-x-2">
-              <FileText className="w-5 h-5 text-blue-600" />
-              <span>Assurance avec l'entreprise</span>
+            <li className="flex items-center justify-between space-x-2">
+              <div className="flex items-center space-x-2">
+                {documents.assurance ? (
+                  <Check className="w-5 h-5 text-green-600" />
+                ) : (
+                  <FileText className="w-5 h-5 text-blue-600" />
+                )}
+                <span className={documents.assurance ? 'text-green-600' : 'text-gray-700'}>
+                  Assurance avec l'entreprise {documents.assurance && '(déposée)'}
+                </span>
+              </div>
+              {documents.assurance && (
+                <button
+                  onClick={() => handleDownload(user.id, 'assurance')}
+                  className="text-blue-600 hover:text-blue-900"
+                  title="Télécharger"
+                >
+                  <Download className="w-5 h-5" />
+                </button>
+              )}
             </li>
           </ul>
         </div>
+
+
 
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -208,76 +277,130 @@ const Documents = () => {
       <div>
         <h1 className="text-3xl font-bold mb-6 text-gray-800">Validation des Documents</h1>
 
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Étudiant</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {documents.map((etudiant) => (
-                <tr key={etudiant.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
+        <div className="space-y-6">
+          {documents.map((etudiant) => (
+            <div key={etudiant.id} className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800">
                     {etudiant.nom} {etudiant.prenom}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(etudiant.validation_documents)}`}>
-                      {etudiant.validation_documents}
+                  </h3>
+                  <p className="text-sm text-gray-600">{etudiant.email}</p>
+                  <p className="text-sm text-gray-600">
+                    {etudiant.filiere} - {etudiant.niveau}
+                  </p>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(etudiant.validation_documents)}`}>
+                  {etudiant.validation_documents}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-medium text-gray-700">Document de stage</h4>
+                    {etudiant.document_stage && (
+                      <button
+                        onClick={() => handleDownload(etudiant.id, 'document_stage')}
+                        className="text-blue-600 hover:text-blue-900"
+                        title="Télécharger"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center">
+                    {etudiant.document_stage ? (
+                      <Check className="w-4 h-4 text-green-600 mr-2" />
+                    ) : (
+                      <X className="w-4 h-4 text-red-600 mr-2" />
+                    )}
+                    <span className={`text-sm ${etudiant.document_stage ? 'text-green-600' : 'text-red-600'}`}>
+                      {etudiant.document_stage ? 'Déposé' : 'Non déposé'}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap space-x-2">
-                    <button
-                      onClick={() => handleDownload(etudiant.id, 'document_stage')}
-                      className="text-blue-600 hover:text-blue-900"
-                      title="Télécharger document de stage"
-                    >
-                      <Download className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDownload(etudiant.id, 'convention')}
-                      className="text-blue-600 hover:text-blue-900"
-                      title="Télécharger convention"
-                    >
-                      <Download className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDownload(etudiant.id, 'assurance')}
-                      className="text-blue-600 hover:text-blue-900"
-                      title="Télécharger assurance"
-                    >
-                      <Download className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setValidationData({ validation: 'valide', raison_rejet: '' });
-                        handleValidation(etudiant.id);
-                      }}
-                      className="text-green-600 hover:text-green-900"
-                      title="Valider"
-                    >
-                      <Check className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        const raison = prompt('Raison du rejet:');
-                        if (raison) {
-                          setValidationData({ validation: 'rejete', raison_rejet: raison });
-                          handleValidation(etudiant.id);
-                        }
-                      }}
-                      className="text-red-600 hover:text-red-900"
-                      title="Rejeter"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-medium text-gray-700">Convention</h4>
+                    {etudiant.convention && (
+                      <button
+                        onClick={() => handleDownload(etudiant.id, 'convention')}
+                        className="text-blue-600 hover:text-blue-900"
+                        title="Télécharger"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center">
+                    {etudiant.convention ? (
+                      <Check className="w-4 h-4 text-green-600 mr-2" />
+                    ) : (
+                      <X className="w-4 h-4 text-red-600 mr-2" />
+                    )}
+                    <span className={`text-sm ${etudiant.convention ? 'text-green-600' : 'text-red-600'}`}>
+                      {etudiant.convention ? 'Déposée' : 'Non déposée'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-medium text-gray-700">Assurance</h4>
+                    {etudiant.assurance && (
+                      <button
+                        onClick={() => handleDownload(etudiant.id, 'assurance')}
+                        className="text-blue-600 hover:text-blue-900"
+                        title="Télécharger"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center">
+                    {etudiant.assurance ? (
+                      <Check className="w-4 h-4 text-green-600 mr-2" />
+                    ) : (
+                      <X className="w-4 h-4 text-red-600 mr-2" />
+                    )}
+                    <span className={`text-sm ${etudiant.assurance ? 'text-green-600' : 'text-red-600'}`}>
+                      {etudiant.assurance ? 'Déposée' : 'Non déposée'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => {
+                    setValidationData({ validation: 'valide', raison_rejet: '' });
+                    handleValidation(etudiant.id);
+                  }}
+                  className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                  disabled={etudiant.validation_documents === 'valide'}
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Valider tous les documents</span>
+                </button>
+                <button
+                  onClick={() => {
+                    const raison = prompt('Raison du rejet:');
+                    if (raison) {
+                      setValidationData({ validation: 'rejete', raison_rejet: raison });
+                      handleValidation(etudiant.id);
+                    }
+                  }}
+                  className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+                  disabled={etudiant.validation_documents === 'rejete'}
+                >
+                  <X className="w-4 h-4" />
+                  <span>Rejeter</span>
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );

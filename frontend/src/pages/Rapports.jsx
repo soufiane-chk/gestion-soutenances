@@ -352,19 +352,13 @@ const Rapports = () => {
                     Étudiant
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fichier
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date de dépôt
+                    Durée de stage
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Statut
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Détails
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    Déposé
                   </th>
                 </>
               )}
@@ -457,88 +451,15 @@ const Rapports = () => {
                       {rapport.etudiant?.nom} {rapport.etudiant?.prenom}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <a
-                        href={rapport.fichier_url || rapport.fichier}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline flex items-center space-x-1"
-                      >
-                        <span>Voir le rapport</span>
-                      </a>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {rapport.date_depot}
+                      {rapport.etudiant?.duree_stage || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatutColor(rapport.statut || 'depose')}`}>
                         {getStatutLabel(rapport.statut || 'depose')}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="space-y-2">
-                        {rapport.statut === 'non_valide' && rapport.raison_non_validation && (
-                          <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
-                            <strong>Raison:</strong> {rapport.raison_non_validation}
-                          </div>
-                        )}
-                        {rapport.statut === 'valide' && (
-                          <div className="text-xs text-green-600 bg-green-50 p-2 rounded space-y-1">
-                            {rapport.date_soutenance && (
-                              <div className="flex items-center space-x-1">
-                                <Calendar className="w-3 h-3" />
-                                <span><strong>Date:</strong> {new Date(rapport.date_soutenance).toLocaleDateString('fr-FR')}</span>
-                              </div>
-                            )}
-                            {rapport.lieu_soutenance && (
-                              <div className="flex items-center space-x-1">
-                                <MapPin className="w-3 h-3" />
-                                <span><strong>Lieu:</strong> {rapport.lieu_soutenance}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      {/* Actions pour l'étudiant sur SES propres rapports */}
-                      {user?.role === 'etudiant' && user.etudiant?.id === rapport.etudiant_id && (
-                        <>
-                          {rapport.statut === 'valide' && (
-                            <button
-                              onClick={() => {
-                                setSelectedRapportId(rapport.id);
-                                setShowVersionFinaleModal(true);
-                              }}
-                              className="text-green-600 hover:text-green-900"
-                              title="Déposer version finale"
-                            >
-                              <FileText className="w-5 h-5" />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleEdit(rapport)}
-                            className="text-blue-600 hover:text-blue-900"
-                          >
-                            <Edit className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(rapport.id)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </>
-                      )}
-
-                      {/* Suppression globale par l'admin */}
-                      {user?.role === 'admin' && (
-                        <button
-                          onClick={() => handleDelete(rapport.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      )}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {rapport.date_depot ? new Date(rapport.date_depot).toLocaleDateString('fr-FR') : 'Non déposé'}
                     </td>
                   </>
                 )}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { authAPI } from '../../services/api';
+import { etudiantsAPI, professeursAPI, jurysAPI } from '../../services/api';
 import { Edit, Trash2, Search, Shield, User, GraduationCap, UserCheck } from 'lucide-react';
 
 const Users = () => {
@@ -21,18 +21,24 @@ const Users = () => {
 
   const fetchUsers = async () => {
     try {
-      // Note: Vous devrez créer cette route dans le backend
-      const response = await authAPI.getAllUsers?.() || { data: [] };
-      setUsers(response.data || []);
+      // Fetch all users from different entities
+      const [etudiantsRes, professeursRes, jurysRes] = await Promise.all([
+        etudiantsAPI.getAll(),
+        professeursAPI.getAll(),
+        jurysAPI.getAll()
+      ]);
+
+      // Combine all users with their roles
+      const allUsers = [
+        ...(etudiantsRes.data || []).map(user => ({ ...user, role: 'etudiant' })),
+        ...(professeursRes.data || []).map(user => ({ ...user, role: 'professeur' })),
+        ...(jurysRes.data || []).map(user => ({ ...user, role: 'jury' }))
+      ];
+
+      setUsers(allUsers);
     } catch (error) {
       console.error('Erreur lors du chargement des utilisateurs:', error);
-      // Fallback: essayer de récupérer depuis les différentes entités
-      try {
-        // Cette logique dépendra de votre backend
-        setUsers([]);
-      } catch (e) {
-        console.error(e);
-      }
+      setUsers([]);
     } finally {
       setLoading(false);
     }

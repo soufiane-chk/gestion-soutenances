@@ -82,7 +82,8 @@ class EncadrementController extends Controller
         $professeur = Professeur::where('user_id', $user->id)->firstOrFail();
         $etudiant = Etudiant::findOrFail($request->etudiant_id);
 
-        if ($etudiant->encadrant_id !== $professeur->id && $etudiant->rapporteur_id !== $professeur->id) {
+        // Vérifier que l'étudiant est bien affecté à cet encadrant
+        if ($etudiant->encadrant_id !== $professeur->id) {
             return response()->json(['message' => 'Cet étudiant n\'est pas affecté à vous'], 403);
         }
 
@@ -137,7 +138,7 @@ class EncadrementController extends Controller
         // Vérifier les permissions
         if ($user->role !== 'admin' && 
             ($user->role !== 'etudiant' || $user->id !== $etudiant->user_id) &&
-            ($user->role !== 'professeur' || !in_array(Professeur::where('user_id', $user->id)->first()?->id, [$etudiant->encadrant_id, $etudiant->rapporteur_id]))) {
+            ($user->role !== 'professeur' || $etudiant->encadrant_id !== Professeur::where('user_id', $user->id)->first()?->id)) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 

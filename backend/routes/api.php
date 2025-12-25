@@ -12,7 +12,6 @@ use App\Http\Controllers\RapporteurController;
 
 // Route de connexion (publique)
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
 
 // Routes protégées (nécessitent une authentification)
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -28,6 +27,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('etudiants/{etudiantId}/documents/{type}/download', [DocumentController::class, 'download']);
     Route::post('etudiants/{etudiantId}/documents/valider', [DocumentController::class, 'validerDocuments']);
     Route::get('documents/en-attente', [DocumentController::class, 'documentsEnAttente']);
+    Route::get('documents/mes-documents', [DocumentController::class, 'getMesDocuments']);
 
     // Encadrement
     Route::post('etudiants/{etudiantId}/affecter-encadrant', [EncadrementController::class, 'affecterEncadrant']);

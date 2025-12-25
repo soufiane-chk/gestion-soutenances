@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { etudiantsAPI, professeursAPI, encadrementAPI } from '../services/api';
-import { Plus, Edit, Trash2, Search, Calendar } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { etudiantsAPI } from '../services/api';
+import { Plus, Edit, Trash2, Search } from 'lucide-react';
 
 const Etudiants = () => {
   const [etudiants, setEtudiants] = useState([]);
@@ -17,15 +16,6 @@ const Etudiants = () => {
     niveau: '',
     password: '',
   });
-  const [showSeanceModal, setShowSeanceModal] = useState(false);
-  const [selectedEtudiantId, setSelectedEtudiantId] = useState(null);
-  const [seanceData, setSeanceData] = useState({
-    date_seance: '',
-    heure_debut: '',
-    duree_minutes: 30,
-    notes: '',
-  });
-  const { isProfesseur } = useAuth();
 
   useEffect(() => {
     fetchEtudiants();
@@ -33,41 +23,12 @@ const Etudiants = () => {
 
   const fetchEtudiants = async () => {
     try {
-      const response = isProfesseur ? await professeursAPI.rapportsAEvaluer() : await etudiantsAPI.getAll();
+      const response = await etudiantsAPI.getAll();
       setEtudiants(response.data || []);
     } catch (error) {
       console.error('Erreur lors du chargement des étudiants:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const openSeanceModal = (id) => {
-    setSelectedEtudiantId(id);
-    setShowSeanceModal(true);
-  };
-
-  const submitSeance = async (e) => {
-    e.preventDefault();
-    try {
-      await encadrementAPI.creerSeance({
-        etudiant_id: selectedEtudiantId,
-        date_seance: seanceData.date_seance,
-        heure_debut: seanceData.heure_debut,
-        duree_minutes: Number(seanceData.duree_minutes),
-        notes: seanceData.notes,
-      });
-      setShowSeanceModal(false);
-      setSelectedEtudiantId(null);
-      setSeanceData({
-        date_seance: '',
-        heure_debut: '',
-        duree_minutes: 30,
-        notes: '',
-      });
-      alert('Séance créée avec succès');
-    } catch (error) {
-      alert('Erreur lors de la création de la séance: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -187,19 +148,6 @@ const Etudiants = () => {
                 <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
                   Niveau
                 </th>
-                {isProfesseur && (
-                  <>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                      Sujet de stage
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                      Durée (semaines)
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                      Contact
-                    </th>
-                  </>
-                )}
                 <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
                   Actions
                 </th>
@@ -231,19 +179,6 @@ const Etudiants = () => {
                       {etudiant.niveau}
                     </span>
                   </td>
-                  {isProfesseur && (
-                    <>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {etudiant.sujet_stage || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {etudiant.duree_stage ?? '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {etudiant.contact_etudiant || '-'}
-                      </td>
-                    </>
-                  )}
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                     <button
                       onClick={() => handleEdit(etudiant)}
@@ -259,15 +194,6 @@ const Etudiants = () => {
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
-                    {isProfesseur && (
-                      <button
-                        onClick={() => openSeanceModal(etudiant.id)}
-                        className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
-                        title="Planifier une séance"
-                      >
-                        <Calendar className="w-5 h-5" />
-                      </button>
-                    )}
                   </td>
                 </tr>
               ))}
@@ -355,70 +281,6 @@ const Etudiants = () => {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-300 transition-all"
-                >
-                  Annuler
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-      {showSeanceModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="glass-effect rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl border border-white/50">
-            <h2 className="text-3xl font-bold gradient-text mb-6">Planifier une séance</h2>
-            <form onSubmit={submitSeance} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                <input
-                  type="date"
-                  value={seanceData.date_seance}
-                  onChange={(e) => setSeanceData({ ...seanceData, date_seance: e.target.value })}
-                  required
-                  className="w-full px-4 py-3 bg-white/80 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Heure de début</label>
-                <input
-                  type="time"
-                  value={seanceData.heure_debut}
-                  onChange={(e) => setSeanceData({ ...seanceData, heure_debut: e.target.value })}
-                  required
-                  className="w-full px-4 py-3 bg-white/80 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Durée (minutes)</label>
-                <input
-                  type="number"
-                  min="15"
-                  step="15"
-                  value={seanceData.duree_minutes}
-                  onChange={(e) => setSeanceData({ ...seanceData, duree_minutes: e.target.value })}
-                  required
-                  className="w-full px-4 py-3 bg-white/80 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                <textarea
-                  value={seanceData.notes}
-                  onChange={(e) => setSeanceData({ ...seanceData, notes: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/80 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                />
-              </div>
-              <div className="flex space-x-4">
-                <button
-                  type="submit"
-                  className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-4 rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl"
-                >
-                  Planifier
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowSeanceModal(false)}
                   className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-300 transition-all"
                 >
                   Annuler

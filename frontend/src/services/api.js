@@ -176,6 +176,7 @@ export const documentsAPI = {
     }),
   valider: (etudiantId, data) => api.post(`/etudiants/${etudiantId}/documents/valider`, data),
   enAttente: () => api.get('/documents/en-attente'),
+  mesDocuments: () => api.get('/documents/mes-documents'),
   download: (etudiantId, type) => api.get(`/etudiants/${etudiantId}/documents/${type}/download`, { responseType: 'blob' }),
 };
 

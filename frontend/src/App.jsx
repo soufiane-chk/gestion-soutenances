@@ -10,6 +10,8 @@ import Rapports from './pages/Rapports';
 import Soutenances from './pages/Soutenances';
 import Jurys from './pages/Jurys';
 import Users from './pages/Admin/Users';
+import EtudiantsAdmin from './pages/Admin/Etudiants';
+import AddEtudiant from './pages/Admin/AddEtudiant';
 import Documents from './pages/Documents';
 import Encadrement from './pages/Encadrement';
 import Rapporteur from './pages/Rapporteur';
@@ -37,6 +39,26 @@ function App() {
               <ProtectedRoute requiredRole="admin">
                 <Layout>
                   <Users />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/etudiants"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Layout>
+                  <EtudiantsAdmin />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/etudiants/ajouter"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Layout>
+                  <AddEtudiant />
                 </Layout>
               </ProtectedRoute>
             }

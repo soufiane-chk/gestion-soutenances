@@ -87,10 +87,12 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
-        $etudiants = Etudiant::where('validation_documents', 'en_attente')
-            ->whereNotNull('document_stage')
-            ->whereNotNull('convention')
-            ->whereNotNull('assurance')
+        // Récupérer tous les étudiants qui ont déposé au moins un document
+        $etudiants = Etudiant::where(function($query) {
+                $query->whereNotNull('document_stage')
+                      ->orWhereNotNull('convention')
+                      ->orWhereNotNull('assurance');
+            })
             ->with('user')
             ->get();
 
@@ -102,8 +104,16 @@ class DocumentController extends Controller
      */
     public function download($etudiantId, $type)
     {
-        $etudiant = Etudiant::findOrFail($etudiantId);
-        
+        // Pour les étudiants, $etudiantId est l'ID utilisateur, pour les admins c'est l'ID étudiant
+        if (Auth::user()->role === 'admin') {
+            $etudiant = Etudiant::findOrFail($etudiantId);
+        } else {
+            $etudiant = Etudiant::where('user_id', $etudiantId)->first();
+            if (!$etudiant) {
+                return response()->json(['message' => 'Etudiant non trouvé'], 404);
+            }
+        }
+
         // Vérifier les permissions
         if (Auth::user()->role !== 'admin' && Auth::user()->id !== $etudiant->user_id) {
             return response()->json(['message' => 'Non autorisé'], 403);
@@ -121,6 +131,23 @@ class DocumentController extends Controller
         }
 
         return Storage::disk('public')->download($etudiant->$champ);
+    }
+
+    /**
+     * Récupérer les documents de l'étudiant connecté
+     */
+    public function getMesDocuments()
+    {
+        $etudiant = Etudiant::where('user_id', Auth::id())->first();
+        if (!$etudiant) {
+            return response()->json(['message' => 'Etudiant non trouvé'], 404);
+        }
+
+        return response()->json([
+            'document_stage' => $etudiant->document_stage,
+            'convention' => $etudiant->convention,
+            'assurance' => $etudiant->assurance,
+        ]);
     }
 
     /**

@@ -45,7 +45,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Compte créé avec succès',
-            'user' => $user->load(['etudiant', 'professeur']),
+            'user' => $user,
             'token' => $token,
         ], 201);
     }
@@ -70,7 +70,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Connexion réussie',
-            'user' => $user->load(['etudiant', 'professeur']),
+            'user' => $user,
             'token' => $token,
         ]);
     }
@@ -89,6 +89,7 @@ class AuthController extends Controller
      */
     public function me(Request $request)
     {
-        return response()->json($request->user()->load(['etudiant', 'professeur']));
+        return response()->json($request->user());
     }
 }
+
