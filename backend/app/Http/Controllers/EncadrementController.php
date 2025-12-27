@@ -26,13 +26,6 @@ class EncadrementController extends Controller
         $etudiant = Etudiant::findOrFail($etudiantId);
         $encadrant = Professeur::findOrFail($request->encadrant_id);
 
-        // Vérifier que l'encadrant a la même spécialité/domaine que le stage
-        if ($encadrant->specialite !== $etudiant->domaine_stage) {
-            return response()->json([
-                'message' => 'L\'encadrant doit avoir la même spécialité que le domaine du stage'
-            ], 422);
-        }
-
         $etudiant->encadrant_id = $request->encadrant_id;
         $etudiant->save();
 

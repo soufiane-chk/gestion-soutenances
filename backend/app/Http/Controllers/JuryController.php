@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Jury;
 use Illuminate\Http\Request;
 
 class JuryController extends Controller
@@ -11,15 +12,8 @@ class JuryController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $jurys = Jury::with(['soutenance.etudiant', 'encadrant.user', 'rapporteur.user', 'examinateur.user', 'president.user'])->get();
+        return response()->json($jurys);
     }
 
     /**
@@ -27,7 +21,16 @@ class JuryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'soutenance_id' => 'required|exists:soutenances,id|unique:juries,soutenance_id',
+            'encadrant_id' => 'nullable|exists:professeurs,id',
+            'rapporteur_id' => 'nullable|exists:professeurs,id',
+            'examinateur_id' => 'required|exists:professeurs,id',
+            'president_id' => 'required|exists:professeurs,id',
+        ]);
+
+        $jury = Jury::create($request->all());
+        return response()->json($jury, 201);
     }
 
     /**
@@ -35,15 +38,8 @@ class JuryController extends Controller
      */
     public function show(string $id)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        $jury = Jury::with(['soutenance.etudiant', 'encadrant.user', 'rapporteur.user', 'examinateur.user', 'president.user'])->findOrFail($id);
+        return response()->json($jury);
     }
 
     /**
@@ -51,7 +47,18 @@ class JuryController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $jury = Jury::findOrFail($id);
+        
+        $request->validate([
+            'soutenance_id' => 'exists:soutenances,id|unique:juries,soutenance_id,' . $id,
+            'encadrant_id' => 'nullable|exists:professeurs,id',
+            'rapporteur_id' => 'nullable|exists:professeurs,id',
+            'examinateur_id' => 'required|exists:professeurs,id',
+            'president_id' => 'required|exists:professeurs,id',
+        ]);
+
+        $jury->update($request->all());
+        return response()->json($jury);
     }
 
     /**
@@ -59,6 +66,8 @@ class JuryController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $jury = Jury::findOrFail($id);
+        $jury->delete();
+        return response()->json(['message' => 'Jury supprimé']);
     }
 }

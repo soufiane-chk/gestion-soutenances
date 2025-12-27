@@ -12,6 +12,7 @@ import Jurys from './pages/Jurys';
 import Users from './pages/Admin/Users';
 import EtudiantsAdmin from './pages/Admin/Etudiants';
 import AddEtudiant from './pages/Admin/AddEtudiant';
+import AddSoutenance from './pages/Admin/AddSoutenance';
 import Documents from './pages/Documents';
 import Encadrement from './pages/Encadrement';
 import Rapporteur from './pages/Rapporteur';
@@ -39,6 +40,16 @@ function App() {
               <ProtectedRoute requiredRole="admin">
                 <Layout>
                   <Users />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/affectation"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Layout>
+                  <EtudiantsAdmin />
                 </Layout>
               </ProtectedRoute>
             }
@@ -89,6 +100,26 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Rapports />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/soutenances/ajouter"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <AddSoutenance />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/soutenances/modifier/:id"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <AddSoutenance />
                 </Layout>
               </ProtectedRoute>
             }
@@ -151,4 +182,3 @@ function App() {
 }
 
 export default App;
-

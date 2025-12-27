@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 class DocumentController extends Controller
 {
     /**
-     * Dépôt des documents par l'étudiant (corrigé pour utiliser l'étudiant connecté)
+     * Dépôt des documents par l'étudiant
      */
     public function deposerDocuments(Request $request)
     {
@@ -147,29 +147,9 @@ class DocumentController extends Controller
             'document_stage' => $etudiant->document_stage,
             'convention' => $etudiant->convention,
             'assurance' => $etudiant->assurance,
+            'validation_documents' => $etudiant->validation_documents,
+            'raison_rejet_documents' => $etudiant->raison_rejet_documents,
         ]);
-    }
-
-    /**
-     * Déposer un document (simplifié)
-     */
-    public function deposerDocument(Request $request)
-    {
-        $etudiant = Etudiant::where('user_id', auth()->id())->first();
-
-        if (!$etudiant) {
-            return response()->json(['message' => 'Etudiant non trouvé'], 404);
-        }
-
-        // Traitement du dépôt de document
-        // Exemple :
-        if ($request->hasFile('document_stage')) {
-            $path = $request->file('document_stage')->store('documents');
-            $etudiant->document_stage = $path;
-            $etudiant->save();
-        }
-
-        return response()->json(['message' => 'Document déposé avec succès']);
     }
 }
 

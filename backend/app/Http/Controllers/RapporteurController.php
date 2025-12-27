@@ -6,6 +6,7 @@ use App\Models\Rapport;
 use App\Models\Etudiant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use \App\Models\Professeur;
 
 class RapporteurController extends Controller
 {
@@ -52,7 +53,7 @@ class RapporteurController extends Controller
         }
 
         $rapport = Rapport::with('etudiant')->findOrFail($rapportId);
-        $professeur = \App\Models\Professeur::where('user_id', $user->id)->firstOrFail();
+        $professeur =Professeur::where('user_id', $user->id)->firstOrFail();
 
         // Vérifier que le professeur est bien le rapporteur de cet étudiant
         if ($rapport->etudiant->rapporteur_id !== $professeur->id) {

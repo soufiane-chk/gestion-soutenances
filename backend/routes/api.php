@@ -37,7 +37,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('etudiants/{etudiantId}/seances', [EncadrementController::class, 'seancesEtudiant']);
 
     // Professeurs
-    Route::get('professeurs', [ProfesseurController::class, 'index']);
+    Route::apiResource('professeurs', ProfesseurController::class);
     Route::get('professeurs/mes-etudiants', [ProfesseurController::class, 'mesEtudiants']);
     Route::post('etudiants/{etudiantId}/affecter-rapporteur', [ProfesseurController::class, 'affecterRapporteur']);
     Route::get('professeurs/rapports-a-evaluer', [ProfesseurController::class, 'rapportsAEvaluer']);
@@ -53,4 +53,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // CRUD Soutenances
     Route::apiResource('soutenances', SoutenanceController::class);
+
+    // CRUD Jurys
+    Route::apiResource('jurys', \App\Http\Controllers\JuryController::class);
 });

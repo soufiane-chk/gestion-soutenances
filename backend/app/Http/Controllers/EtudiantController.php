@@ -14,7 +14,7 @@ class EtudiantController extends Controller
      */
     public function index()
     {
-        $etudiants = Etudiant::orderBy('nom')->get();
+        $etudiants = Etudiant::with(['encadrant.user', 'rapporteur.user'])->orderBy('nom')->get();
         return response()->json($etudiants);
     }
 

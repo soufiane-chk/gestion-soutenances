@@ -129,6 +129,25 @@ const Documents = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
+          {documents.validation_documents && (
+            <div className={`mb-6 p-4 rounded-lg ${
+              documents.validation_documents === 'valide' ? 'bg-green-100 border border-green-200 text-green-800' :
+              documents.validation_documents === 'rejete' ? 'bg-red-100 border border-red-200 text-red-800' :
+              'bg-yellow-100 border border-yellow-200 text-yellow-800'
+            }`}>
+              <h3 className="font-bold text-lg mb-2">
+                Statut : {
+                  documents.validation_documents === 'valide' ? 'Validé' :
+                  documents.validation_documents === 'rejete' ? 'Rejeté' :
+                  'En attente'
+                }
+              </h3>
+              {documents.raison_rejet_documents && (
+                <p>Raison du rejet : {documents.raison_rejet_documents}</p>
+              )}
+            </div>
+          )}
+
           <h2 className="text-xl font-semibold mb-4">Documents requis</h2>
           <p className="text-gray-600 mb-4">Veuillez déposer tous les documents suivants :</p>
           <ul className="space-y-2">
@@ -372,33 +391,29 @@ const Documents = () => {
                 </div>
               </div>
 
-              <div className="flex space-x-4">
-                <button
-                  onClick={() => {
-                    setValidationData({ validation: 'valide', raison_rejet: '' });
-                    handleValidation(etudiant.id);
-                  }}
-                  className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-                  disabled={etudiant.validation_documents === 'valide'}
-                >
-                  <Check className="w-4 h-4" />
-                  <span>Valider tous les documents</span>
-                </button>
-                <button
-                  onClick={() => {
-                    const raison = prompt('Raison du rejet:');
-                    if (raison) {
-                      setValidationData({ validation: 'rejete', raison_rejet: raison });
-                      handleValidation(etudiant.id);
-                    }
-                  }}
-                  className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
-                  disabled={etudiant.validation_documents === 'rejete'}
-                >
-                  <X className="w-4 h-4" />
-                  <span>Rejeter</span>
-                </button>
-              </div>
+              {etudiant.validation_documents === 'en_attente' && (
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => handleValidation(etudiant.id, 'valide')}
+                    className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Valider tous les documents</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const raison = prompt('Raison du rejet:');
+                      if (raison) {
+                        handleValidation(etudiant.id, 'rejete', raison);
+                      }
+                    }}
+                    className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+                  >
+                    <X className="w-4 h-4" />
+                    <span>Rejeter</span>
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

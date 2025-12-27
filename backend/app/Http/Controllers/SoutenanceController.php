@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Soutenance;
 use App\Models\Jury;
 use Illuminate\Http\Request;
+use \App\Models\Professeur;
 
 class SoutenanceController extends Controller
 {
@@ -13,7 +14,7 @@ class SoutenanceController extends Controller
      */
     public function index()
     {
-        $soutenances = Soutenance::with('etudiant')->orderBy('date_soutenance')->get();
+        $soutenances = Soutenance::with(['etudiant', 'jury.encadrant.user', 'jury.rapporteur.user', 'jury.examinateur.user', 'jury.president.user'])->orderBy('date_soutenance')->get();
         return response()->json($soutenances);
     }
 
@@ -27,8 +28,8 @@ class SoutenanceController extends Controller
             'date_soutenance' => 'required|date',
             'heure_soutenance' => 'required|date_format:H:i',
             'salle' => 'required|string',
-            'encadrant_id' => 'required|exists:professeurs,id',
-            'rapporteur_id' => 'required|exists:professeurs,id',
+            'encadrant_id' => 'nullable|exists:professeurs,id',
+            'rapporteur_id' => 'nullable|exists:professeurs,id',
             'examinateur_id' => 'required|exists:professeurs,id',
             'president_id' => 'required|exists:professeurs,id',
         ]);
@@ -50,13 +51,17 @@ class SoutenanceController extends Controller
             ], 422);
         }
 
+        // Récupérer l'étudiant pour obtenir son encadrant si non fourni
+        $etudiant = \App\Models\Etudiant::find($request->id_etudiant);
+        $encadrantId = $request->encadrant_id ?: $etudiant->encadrant_id;
+
         // Vérifier que chaque professeur n'a pas déjà une soutenance à cette date/heure
-        $professeursIds = [
-            $request->encadrant_id,
+        $professeursIds = array_filter([
+            $encadrantId,
             $request->rapporteur_id,
             $request->examinateur_id,
             $request->president_id
-        ];
+        ]);
 
         foreach ($professeursIds as $profId) {
             $hasConflict = \App\Models\Jury::whereHas('soutenance', function($query) use ($request) {
@@ -74,7 +79,7 @@ class SoutenanceController extends Controller
             if ($hasConflict) {
                 $prof = \App\Models\Professeur::find($profId);
                 return response()->json([
-                    'message' => 'Le professeur ' . $prof->user->nom . ' a déjà une soutenance à cette date et heure'
+                    'message' => 'Le professeur ' . ($prof->user->nom ?? 'Inconnu') . ' a déjà une soutenance à cette date et heure'
                 ], 422);
             }
         }
@@ -91,7 +96,7 @@ class SoutenanceController extends Controller
         // Créer le jury
         \App\Models\Jury::create([
             'soutenance_id' => $soutenance->id,
-            'encadrant_id' => $request->encadrant_id,
+            'encadrant_id' => $encadrantId,
             'rapporteur_id' => $request->rapporteur_id,
             'examinateur_id' => $request->examinateur_id,
             'president_id' => $request->president_id,
@@ -105,7 +110,7 @@ class SoutenanceController extends Controller
      */
     public function show(string $id)
     {
-        $soutenance = Soutenance::with('etudiant')->findOrFail($id);
+        $soutenance = Soutenance::with(['etudiant', 'jury'])->findOrFail($id);
         return response()->json($soutenance);
     }
 
@@ -114,9 +119,31 @@ class SoutenanceController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $request->validate([
+            'date_soutenance' => 'date',
+            'heure_soutenance' => 'date_format:H:i',
+            'salle' => 'string',
+            'examinateur_id' => 'exists:professeurs,id',
+            'president_id' => 'exists:professeurs,id',
+        ]);
+
         $soutenance = Soutenance::findOrFail($id);
-        $soutenance->update($request->all());
-        return response()->json($soutenance);
+        $soutenance->update($request->only(['date_soutenance', 'heure_soutenance', 'salle', 'status']));
+
+        // Mettre à jour le jury
+        if ($soutenance->jury) {
+            $soutenance->jury->update([
+                'examinateur_id' => $request->examinateur_id ?? $soutenance->jury->examinateur_id,
+                'president_id' => $request->president_id ?? $soutenance->jury->president_id,
+                // On ne met pas à jour encadrant/rapporteur ici sauf si explicitement demandé, 
+                // mais le formulaire ne les envoie pas forcément tous.
+                // Si on voulait permettre de changer encadrant/rapporteur, il faudrait les ajouter ici.
+                'encadrant_id' => $request->encadrant_id ?? $soutenance->jury->encadrant_id,
+                'rapporteur_id' => $request->rapporteur_id ?? $soutenance->jury->rapporteur_id,
+            ]);
+        }
+
+        return response()->json($soutenance->load('jury'));
     }
 
     /**

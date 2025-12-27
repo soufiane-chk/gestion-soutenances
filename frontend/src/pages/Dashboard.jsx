@@ -16,6 +16,7 @@ const Dashboard = () => {
     soutenances: [],
     jurys: [],
   });
+  const [myEtudiant, setMyEtudiant] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,19 +42,22 @@ const Dashboard = () => {
         });
       } else if (isEtudiant) {
         // Dashboard Étudiant - ses propres données
-        const [rapports, soutenances] = await Promise.all([
+        const [rapports, soutenances, etudiants] = await Promise.all([
           rapportsAPI.getAll().catch(() => ({ data: [] })),
           soutenancesAPI.getAll().catch(() => ({ data: [] })),
+          etudiantsAPI.getAll().catch(() => ({ data: [] })),
         ]);
 
-        const myRapports = rapports.data?.filter(r => r.etudiant_id === user?.etudiant?.id) || [];
-        const mySoutenances = soutenances.data?.filter(s => s.etudiant_id === user?.etudiant?.id) || [];
+        const myRapports = rapports.data?.filter(r => r.etudiant?.user_id === user?.id) || [];
+        const mySoutenances = soutenances.data?.filter(s => s.etudiant?.user_id === user?.id) || [];
+        const me = etudiants.data?.find(e => e.user_id === user?.id) || null;
 
         setMyData({
           rapports: myRapports,
           soutenances: mySoutenances,
           jurys: [],
         });
+        setMyEtudiant(me);
       } else if (isProfesseur) {
         // Dashboard Professeur - ses données
         const [rapports, soutenances] = await Promise.all([
@@ -195,6 +199,37 @@ const Dashboard = () => {
             ) : (
               <div className="p-4 bg-gray-50 rounded-xl text-center">
                 <p className="text-gray-600">Aucune soutenance planifiée</p>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="glass-effect rounded-2xl p-6 card-hover border border-white/50 shadow-xl">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-800">Mes Affectations</h2>
+              <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg">
+                <UserCheck className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            {myEtudiant ? (
+              <div className="space-y-3">
+                <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
+                  <p className="text-sm text-gray-600">Encadrant</p>
+                  <p className="text-lg font-semibold text-gray-800">
+                    {myEtudiant.encadrant?.user?.nom || 'Non affecté'}
+                  </p>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl">
+                  <p className="text-sm text-gray-600">Rapporteur</p>
+                  <p className="text-lg font-semibold text-gray-800">
+                    {myEtudiant.rapporteur?.user?.nom || 'Non affecté'}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 bg-gray-50 rounded-xl text-center">
+                <p className="text-gray-600">Aucune affectation disponible</p>
               </div>
             )}
           </div>

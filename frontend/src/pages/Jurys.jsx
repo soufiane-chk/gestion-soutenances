@@ -148,19 +148,16 @@ const Jurys = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Soutenance
+                Étudiant
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Encadrant
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Rapporteur
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Examinateur
+                Date
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Président
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Examinateur
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
@@ -171,19 +168,18 @@ const Jurys = () => {
             {filteredJurys.map((jury) => (
               <tr key={jury.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {jury.soutenance?.theme || `Soutenance #${jury.soutenance_id}`}
+                  {jury.soutenance?.etudiant?.nom} {jury.soutenance?.etudiant?.prenom}
+                  <div className="text-xs text-gray-500">{jury.soutenance?.theme}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {jury.encadrant?.user?.nom || jury.encadrant?.nom || '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {jury.rapporteur?.user?.nom || jury.rapporteur?.nom || '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {jury.examinateur?.user?.nom || jury.examinateur?.nom || '-'}
+                  {jury.soutenance?.date_soutenance ? new Date(jury.soutenance.date_soutenance).toLocaleDateString() : '-'}
+                  <div className="text-xs text-gray-500">{jury.soutenance?.heure_soutenance}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {jury.president?.user?.nom || jury.president?.nom || '-'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {jury.examinateur?.user?.nom || jury.examinateur?.nom || '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                   <button
@@ -230,36 +226,11 @@ const Jurys = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Encadrant</label>
-                <select
-                  value={formData.encadrant_id}
-                  onChange={(e) => setFormData({ ...formData, encadrant_id: e.target.value })}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Sélectionner un professeur</option>
-                  {professeurs.map((professeur) => (
-                    <option key={professeur.id} value={professeur.id}>
-                      {professeur.user?.nom || professeur.nom}
-                    </option>
-                  ))}
-                </select>
+                <div className="px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-700">
+                  {professeurs.find(p => p.id === formData.encadrant_id)?.user?.nom || 'Non assigné'}
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Rapporteur</label>
-                <select
-                  value={formData.rapporteur_id}
-                  onChange={(e) => setFormData({ ...formData, rapporteur_id: e.target.value })}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Sélectionner un professeur</option>
-                  {professeurs.map((professeur) => (
-                    <option key={professeur.id} value={professeur.id}>
-                      {professeur.user?.nom || professeur.nom}
-                    </option>
-                  ))}
-                </select>
-              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Examinateur</label>
                 <select

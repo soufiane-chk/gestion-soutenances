@@ -23,6 +23,7 @@ const Sidebar = ({ onClose }) => {
     { path: '/', icon: LayoutDashboard, label: 'Dashboard', color: 'from-blue-500 to-cyan-500' },
     { path: '/admin/users', icon: Users, label: 'Utilisateurs', color: 'from-purple-500 to-pink-500' },
     { path: '/etudiants', icon: Users, label: 'Étudiants', color: 'from-green-500 to-emerald-500' },
+    { path: '/admin/affectation', icon: UserPlus, label: 'Affectation', color: 'from-teal-500 to-cyan-500' },
     { path: '/professeurs', icon: GraduationCap, label: 'Professeurs', color: 'from-orange-500 to-red-500' },
     { path: '/documents', icon: Upload, label: 'Documents', color: 'from-indigo-500 to-blue-500' },
     { path: '/encadrement', icon: UserPlus, label: 'Encadrants', color: 'from-teal-500 to-cyan-500' },

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { etudiantsAPI } from '../../services/api';
+import { etudiantsAPI, professeursAPI, encadrementAPI } from '../../services/api';
 import { Plus, Edit, Trash2, Search, User, Building, Calendar, MapPin } from 'lucide-react';
 
 const Etudiants = () => {
@@ -10,6 +10,13 @@ const Etudiants = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assignEtudiant, setAssignEtudiant] = useState(null);
+  const [professeurs, setProfesseurs] = useState([]);
+  const [assignData, setAssignData] = useState({
+    encadrant_id: '',
+    rapporteur_id: '',
+  });
   const [formData, setFormData] = useState({
     nom: '',
     prenom: '',
@@ -25,6 +32,7 @@ const Etudiants = () => {
 
   useEffect(() => {
     fetchEtudiants();
+    fetchProfesseurs();
   }, []);
 
   const fetchEtudiants = async () => {
@@ -36,6 +44,16 @@ const Etudiants = () => {
       setEtudiants([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProfesseurs = async () => {
+    try {
+      const response = await professeursAPI.getAll();
+      setProfesseurs(response.data || []);
+    } catch (error) {
+      console.error('Erreur lors du chargement des professeurs:', error);
+      setProfesseurs([]);
     }
   };
 
@@ -79,6 +97,33 @@ const Etudiants = () => {
       } catch (error) {
         alert('Erreur lors de la suppression: ' + (error.response?.data?.message || error.message));
       }
+    }
+  };
+
+  const openAssignModal = (etudiant) => {
+    setAssignEtudiant(etudiant);
+    setAssignData({
+      encadrant_id: etudiant.encadrant_id || '',
+      rapporteur_id: etudiant.rapporteur_id || '',
+    });
+    setShowAssignModal(true);
+  };
+
+  const submitAssign = async (e) => {
+    e.preventDefault();
+    try {
+      if (assignData.encadrant_id) {
+        await encadrementAPI.affecterEncadrant(assignEtudiant.id, { encadrant_id: assignData.encadrant_id });
+      }
+      if (assignData.rapporteur_id) {
+        await professeursAPI.affecterRapporteur(assignEtudiant.id, { rapporteur_id: assignData.rapporteur_id });
+      }
+      setShowAssignModal(false);
+      setAssignEtudiant(null);
+      fetchEtudiants();
+      alert('Affectations enregistrées avec succès');
+    } catch (error) {
+      alert('Erreur lors de l\'affectation: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -159,6 +204,9 @@ const Etudiants = () => {
                 Durée Stage
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Affectations
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
@@ -170,9 +218,14 @@ const Etudiants = () => {
                   <div className="flex items-center space-x-2">
                     <User className="w-4 h-4 text-gray-400" />
                     <div>
-                      <div className="text-sm font-medium text-gray-900">
+                      <button
+                        type="button"
+                        onClick={() => openAssignModal(etudiant)}
+                        className="text-sm font-medium text-green-700 hover:text-green-900 underline-offset-2 hover:underline"
+                        title="Affecter encadrant/rapporteur"
+                      >
                         {etudiant.nom} {etudiant.prenom}
-                      </div>
+                      </button>
                       <div className="text-xs text-gray-500">{etudiant.email}</div>
                     </div>
                   </div>
@@ -199,6 +252,16 @@ const Etudiants = () => {
                     </div>
                   </div>
                 </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">
+                    <div>
+                      Encadrant: <span className="font-medium">{etudiant.encadrant?.user?.nom || 'Non affecté'}</span>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Rapporteur: <span className="font-medium">{etudiant.rapporteur?.user?.nom || 'Non affecté'}</span>
+                    </div>
+                  </div>
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                   <button
                     onClick={() => handleEdit(etudiant)}
@@ -206,6 +269,13 @@ const Etudiants = () => {
                     title="Modifier"
                   >
                     <Edit className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => openAssignModal(etudiant)}
+                    className="text-green-600 hover:text-green-900"
+                    title="Affecter encadrant/rapporteur"
+                  >
+                    Affecter
                   </button>
                   <button
                     onClick={() => handleDelete(etudiant.id)}
@@ -220,6 +290,61 @@ const Etudiants = () => {
           </tbody>
         </table>
       </div>
+
+      {showAssignModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg">
+            <h2 className="text-2xl font-bold mb-4">Affecter Encadrant / Rapporteur</h2>
+            <form onSubmit={submitAssign} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Encadrant</label>
+                <select
+                  value={assignData.encadrant_id}
+                  onChange={(e) => setAssignData({ ...assignData, encadrant_id: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Sélectionner un encadrant</option>
+                  {professeurs.map((prof) => (
+                    <option key={prof.id} value={prof.id}>
+                      {prof.user?.nom} - {prof.specialite}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rapporteur</label>
+                <select
+                  value={assignData.rapporteur_id}
+                  onChange={(e) => setAssignData({ ...assignData, rapporteur_id: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Sélectionner un rapporteur</option>
+                  {professeurs.map((prof) => (
+                    <option key={prof.id} value={prof.id}>
+                      {prof.user?.nom} - {prof.specialite}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex space-x-4 pt-2">
+                <button
+                  type="submit"
+                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition"
+                >
+                  Enregistrer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAssignModal(false)}
+                  className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition"
+                >
+                  Annuler
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
